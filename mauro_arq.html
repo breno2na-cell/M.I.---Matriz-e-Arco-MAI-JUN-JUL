@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitetura de Conteúdo · Mauro Iwamura</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f4f0;color:#1a1a1a;}
+.nav{display:flex;background:#1a1a1a;position:sticky;top:0;z-index:100;}
+.nav-btn{flex:1;padding:14px;text-align:center;font-size:12px;font-weight:500;color:#888;cursor:pointer;border:none;background:transparent;transition:color .2s,background .2s;letter-spacing:.03em;}
+.nav-btn.active{color:#fff;background:#333;}
+.nav-btn:hover{color:#ccc;}
+.page{display:none;padding:32px 24px;max-width:980px;margin:0 auto;}
+.page.show{display:block;}
+.section-title{font-size:22px;font-weight:500;color:#1a1a1a;margin-bottom:4px;}
+.section-sub{font-size:13px;color:#666;line-height:1.6;max-width:680px;margin-bottom:24px;}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500;}
+.badge-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.b-mob{background:#E6F1FB;color:#0C447C;} .b-mob .badge-dot{background:#185FA5;}
+.b-kan{background:#E1F5EE;color:#085041;} .b-kan .badge-dot{background:#0F6E56;}
+.b-ind{background:#EEEDFE;color:#3C3489;} .b-ind .badge-dot{background:#534AB7;}
+.b-lid{background:#FAEEDA;color:#633806;} .b-lid .badge-dot{background:#854F0B;}
+.intro-row{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
+.intro-card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:14px 16px;flex:1;min-width:180px;}
+.intro-card .label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:6px;}
+.intro-card .value{font-size:13px;color:#333;line-height:1.5;}
+.legend-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.hint{font-size:11px;color:#aaa;margin-bottom:10px;}
+.grid-wrap{overflow-x:auto;}
+.grid{display:grid;grid-template-columns:110px repeat(4,1fr);gap:1px;background:#ccc;border:0.5px solid #ccc;border-radius:12px;overflow:hidden;min-width:680px;}
+.hcell{background:#f0ede8;padding:10px;text-align:center;font-size:11px;font-weight:500;color:#555;line-height:1.4;}
+.lcell{background:#f0ede8;padding:10px;display:flex;align-items:center;justify-content:center;}
+.lname{font-size:11px;font-weight:500;color:#1a1a1a;text-align:center;line-height:1.3;}
+.tcell{background:#fff;padding:8px;}
+.corner{background:#e8e5e0;}
+.topic{font-size:11px;padding:6px 8px;border-radius:8px;margin-bottom:4px;cursor:pointer;line-height:1.4;border:0.5px solid transparent;transition:border-color .15s,opacity .15s;color:#1a1a1a;}
+.topic:last-child{margin-bottom:0;}
+.topic:hover{opacity:.8;border-color:rgba(0,0,0,.15);}
+.topic.active{border-color:rgba(0,0,0,.3);}
+.t-mob{background:#E6F1FB;} .t-mob:hover,.t-mob.active{background:#c8dff5;}
+.t-kan{background:#E1F5EE;} .t-kan:hover,.t-kan.active{background:#b3e8d4;}
+.t-ind{background:#EEEDFE;} .t-ind:hover,.t-ind.active{background:#d5d2f7;}
+.t-lid{background:#FAEEDA;} .t-lid:hover,.t-lid.active{background:#f5d9a0;}
+.panel{margin-top:14px;background:#fff;border:0.5px solid #bbb;border-radius:12px;padding:16px 18px;display:none;}
+.panel.show{display:block;}
+.panel-meta{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;}
+.panel-pilar{font-size:11px;padding:4px 10px;border-radius:20px;background:#f0ede8;color:#555;font-weight:500;}
+.panel-title{font-size:15px;font-weight:500;color:#1a1a1a;margin-bottom:6px;line-height:1.4;}
+.panel-desc{font-size:13px;color:#555;line-height:1.7;}
+.arco-intro{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:20px 24px;margin-bottom:28px;}
+.arco-intro p{font-size:13px;color:#444;line-height:1.8;margin-bottom:10px;}
+.arco-intro p:last-child{margin-bottom:0;}
+.arco-intro strong{font-weight:500;color:#1a1a1a;}
+.fases-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#ccc;border:0.5px solid #ccc;border-radius:12px;overflow:hidden;margin-bottom:32px;}
+.fase-cell{background:#f0ede8;padding:14px 16px;text-align:center;}
+.fase-num{font-size:10px;font-weight:500;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.fase-name{font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:4px;}
+.fase-desc{font-size:11px;color:#666;line-height:1.5;}
+.fase-cell.f1{border-top:3px solid #185FA5;}
+.fase-cell.f2{border-top:3px solid #0F6E56;}
+.fase-cell.f3{border-top:3px solid #534AB7;}
+.tl-months{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px;}
+.month-block{background:#fff;border:0.5px solid #ddd;border-radius:12px;overflow:hidden;}
+.month-header{padding:10px 14px;font-size:12px;font-weight:500;color:#555;background:#f5f4f0;border-bottom:0.5px solid #ddd;}
+.month-posts{padding:10px;}
+.post-item{padding:10px 12px;border-radius:8px;margin-bottom:8px;border-left:3px solid transparent;}
+.post-item:last-child{margin-bottom:0;}
+.pi-amp{background:#EBF3FC;border-color:#185FA5;}
+.pi-apr{background:#E5F5EE;border-color:#0F6E56;}
+.pi-pos{background:#EEEDFE;border-color:#534AB7;}
+.post-date{font-size:10px;color:#999;margin-bottom:3px;font-weight:500;}
+.post-tema{font-size:13px;font-weight:500;color:#1a1a1a;margin-bottom:5px;line-height:1.3;}
+.post-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;}
+.tag{font-size:10px;padding:2px 7px;border-radius:20px;}
+.tag-lente-mob{background:#E6F1FB;color:#0C447C;}
+.tag-lente-kan{background:#E1F5EE;color:#085041;}
+.tag-lente-ind{background:#EEEDFE;color:#3C3489;}
+.tag-lente-lid{background:#FAEEDA;color:#633806;}
+.tag-pilar{background:#f0ede8;color:#555;}
+.tag-fase-amp{background:#185FA5;color:#fff;}
+.tag-fase-apr{background:#0F6E56;color:#fff;}
+.tag-fase-pos{background:#534AB7;color:#fff;}
+.post-why{font-size:11px;color:#666;line-height:1.5;margin-top:5px;padding-top:5px;border-top:0.5px solid rgba(0,0,0,.08);}
+.argumento{background:#1a1a1a;border-radius:12px;padding:24px 28px;margin-bottom:24px;}
+.arg-title{font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;}
+.arg-items{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.arg-item{border-left:2px solid #444;padding-left:14px;}
+.arg-item-num{font-size:10px;color:#666;margin-bottom:4px;font-weight:500;}
+.arg-item-title{font-size:13px;font-weight:500;color:#fff;margin-bottom:4px;}
+.arg-item-text{font-size:11px;color:#888;line-height:1.6;}
+.frase{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:20px 24px;text-align:center;margin-bottom:20px;}
+.frase p{font-size:15px;color:#1a1a1a;line-height:1.7;font-weight:500;}
+.frase span{font-size:13px;color:#888;display:block;margin-top:6px;font-weight:400;}
+.footer{font-size:11px;color:#aaa;text-align:right;padding-top:12px;}
+@media(max-width:640px){.tl-months{grid-template-columns:1fr;}.arg-items{grid-template-columns:1fr;}.fases-row{grid-template-columns:1fr;}.intro-row{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('matriz',this)">Matriz de conteúdo</button>
+  <button class="nav-btn" onclick="showPage('arco',this)">Arco narrativo</button>
+</div>
+
+<!-- PÁGINA 1: MATRIZ -->
+<div class="page show" id="page-matriz">
+  <p class="section-title">Arquitetura de conteúdo</p>
+  <p class="section-sub">Pilares de marca cruzados com lentes temáticas. Clique em qualquer tópico para ver a descrição do território de conteúdo.</p>
+  <div class="intro-row">
+    <div class="intro-card"><div class="label">Pilares de marca</div><div class="value">Estruturais. Sustentam o posicionamento. Representam quem a marca é e garantem coerência.</div></div>
+    <div class="intro-card"><div class="label">Lentes temáticas</div><div class="value">Editoriais. Ampliam o olhar. Representam como a marca enxerga o mundo e garantem repertório.</div></div>
+  </div>
+  <div class="legend-row">
+    <span class="badge b-mob"><span class="badge-dot"></span>Mobilidade</span>
+    <span class="badge b-kan"><span class="badge-dot"></span>Kando</span>
+    <span class="badge b-ind"><span class="badge-dot"></span>Indústria</span>
+    <span class="badge b-lid"><span class="badge-dot"></span>Liderança</span>
+  </div>
+  <p class="hint">Clique em um tópico para ver a descrição do território</p>
+  <div class="grid-wrap">
+  <div class="grid">
+    <div class="hcell corner"></div>
+    <div class="hcell">Racionalidade com humanidade</div>
+    <div class="hcell">Credibilidade intelectual</div>
+    <div class="hcell">Confiança relacional</div>
+    <div class="hcell">Voz estratégica</div>
+
+    <div class="lcell"><span class="lname">Mobilidade</span></div>
+    <div class="tcell">
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Racionalidade com humanidade','Impacto humano das decisões de mobilidade','O tema mobilidade é abordado sob a lente da responsabilidade: como escolhas técnicas e estratégicas no setor afetam vidas reais, comunidades e o tecido urbano. Equilíbrio entre dado e empatia, mostrando que mobilidade inteligente é antes de tudo mobilidade humana.')">Impacto humano das decisões de mobilidade</div>
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Racionalidade com humanidade','Yamaha Náutica: mobilidade sobre as águas do Brasil','O Brasil tem a maior malha fluvial do mundo e ainda trata rios como obstáculos. A Yamaha Náutica posiciona Mauro como voz de uma mobilidade que o país ainda não explorou plenamente. Rios como caminhos, não como limites.')">Yamaha Náutica: mobilidade sobre as águas</div>
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Racionalidade com humanidade','Antifragilidade em sistemas de mobilidade','Inspirado em Taleb, explora como sistemas de mobilidade e líderes do setor podem ser desenhados não apenas para resistir a crises, mas para sair delas mais robustos.')">Antifragilidade em sistemas de mobilidade</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Credibilidade intelectual','Futuro da mobilidade e transformação urbana','Posicionamento como voz analítica sobre as grandes transformações do setor: eletrificação, mobilidade autônoma, integração modal. Conteúdo com repertório técnico que vai além do óbvio.')">Futuro da mobilidade e transformação urbana</div>
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Credibilidade intelectual','Brasil como potência da mobilidade náutica','O Brasil tem vocação geográfica única para a mobilidade sobre a água. Mauro como voz que conecta essa realidade à inovação industrial, posicionando a Yamaha como protagonista de um mercado com enorme potencial.')">Brasil como potência da mobilidade náutica</div>
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Credibilidade intelectual','Lifelong learning no setor de mobilidade','Em um setor em constante disrupção, a capacidade de aprender continuamente é diferencial de liderança.')">Lifelong learning no setor</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Confiança relacional','Mobilidade como ferramenta de inclusão','A moto da Yamaha não é só um veículo: é o instrumento com que milhões de brasileiros colocam o pão na mesa todos os dias. Entregadores, mototaxistas, trabalhadores rurais. Mobilidade aqui não é conceito filosófico, é sobrevivência e dignidade.')">Mobilidade como ferramenta de inclusão</div>
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Confiança relacional','Nemawashi em grandes projetos','O conceito japonês de construir consenso antes de decidir aplicado a grandes projetos de infraestrutura e mobilidade.')">Nemawashi em grandes projetos</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Voz estratégica','Mobilidade e desenvolvimento econômico','Mauro como voz que conecta mobilidade, desenvolvimento econômico e competitividade nacional.')">Mobilidade e desenvolvimento econômico</div>
+      <div class="topic t-mob" onclick="show(this,'Mobilidade','Voz estratégica','O que o setor ainda não está dizendo','Inspirado no Haragei japonês: Mauro como alguém capaz de ler tendências silenciosas, riscos ignorados e oportunidades subexploradas no setor.')">O que o setor ainda não está dizendo</div>
+    </div>
+
+    <div class="lcell"><span class="lname">Kando</span></div>
+    <div class="tcell">
+      <div class="topic t-kan" onclick="show(this,'Kando','Racionalidade com humanidade','Experiência que respeita o humano','Kando aplicado ao design centrado no ser humano. Como criar produtos e experiências que sejam ao mesmo tempo eficientes e emocionalmente relevantes.')">Experiência que respeita o humano</div>
+      <div class="topic t-kan" onclick="show(this,'Kando','Racionalidade com humanidade','Quando dado encontra emoção','Como análises rigorosas podem ser a fonte de experiências extraordinárias. O encontro entre método e encantamento no desenvolvimento de produtos.')">Quando dado encontra emoção</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-kan" onclick="show(this,'Kando','Credibilidade intelectual','Engenharia e design como fonte de Kando','A interseção entre excelência técnica e impacto emocional. Wabi-sabi, Monozukuri e Kaizen como filosofias que elevam o produto além da função.')">Engenharia e design como fonte de Kando</div>
+      <div class="topic t-kan" onclick="show(this,'Kando','Credibilidade intelectual','Wabi-sabi: a beleza do imperfeito','A filosofia japonesa que encontra valor no que é incompleto e impermanente. Líderes que mostram o processo, assumem incertezas e falam sobre o que ainda estão aprendendo constroem mais credibilidade do que os que apenas exibem resultados.')">Wabi-sabi: a beleza do imperfeito</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-kan" onclick="show(this,'Kando','Confiança relacional','Omotenashi e a lealdade que nasce da emoção','Como marcas que geram Kando constroem vínculos além da transação. Omotenashi como hospitalidade radical que transforma clientes em defensores.')">Omotenashi e a lealdade que nasce da emoção</div>
+      <div class="topic t-kan" onclick="show(this,'Kando','Confiança relacional','Ningen kankei na cultura de produto','O conceito japonês de relações humanas profundas aplicado à cultura organizacional. Equipes que se conhecem genuinamente criam produtos que tocam genuinamente.')">Ningen kankei na cultura de produto</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-kan" onclick="show(this,'Kando','Voz estratégica','A emoção como diferencial competitivo','Mauro defendendo que emoção não é soft skill. É vantagem competitiva mensurável. Kando como princípio de negócio, não apenas de design.')">A emoção como diferencial competitivo</div>
+      <div class="topic t-kan" onclick="show(this,'Kando','Voz estratégica','Quando o produto vira símbolo','Como empresas como a Yamaha transcendem o produto e se tornam referências culturais. O que líderes podem aprender com essa jornada.')">Quando o produto vira símbolo</div>
+    </div>
+
+    <div class="lcell"><span class="lname">Indústria</span></div>
+    <div class="tcell">
+      <div class="topic t-ind" onclick="show(this,'Indústria','Racionalidade com humanidade','Decisão industrial com responsabilidade social','Como líderes industriais tomam decisões que afetam trabalhadores, comunidades e gerações. Equilíbrio entre eficiência operacional e responsabilidade humana.')">Decisão industrial com responsabilidade social</div>
+      <div class="topic t-ind" onclick="show(this,'Indústria','Racionalidade com humanidade','O Brasil que fabrica e o Brasil que inova','O desafio de um país com capacidade industrial robusta que ainda subutiliza seu potencial de inovação. Mauro como voz que conecta o chão de fábrica ao cenário estratégico nacional.')">O Brasil que fabrica e o Brasil que inova</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-ind" onclick="show(this,'Indústria','Credibilidade intelectual','Excelência operacional como cultura','O que separa a indústria de alto desempenho não é só tecnologia: é cultura. Kaizen e Monozukuri conectados a resultados industriais concretos.')">Excelência operacional como cultura</div>
+      <div class="topic t-ind" onclick="show(this,'Indústria','Credibilidade intelectual','Brasil na competitividade industrial global','Análise do posicionamento do Brasil no cenário industrial global. Mauro como voz que interpreta desafios estruturais e aponta caminhos com base em experiência sólida.')">Brasil na competitividade industrial global</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-ind" onclick="show(this,'Indústria','Confiança relacional','Cultura de confiança na indústria','Como a cultura interna define a capacidade de sustentar resultados. Segurança psicológica e respeito como fundamentos da alta performance industrial.')">Cultura de confiança na indústria</div>
+      <div class="topic t-ind" onclick="show(this,'Indústria','Confiança relacional','Vínculos de longo prazo na indústria','Como a cultura japonesa de relacionamento de longo prazo pode ser aplicada ao contexto industrial brasileiro para gerar vantagem sustentável.')">Vínculos de longo prazo na indústria</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-ind" onclick="show(this,'Indústria','Voz estratégica','O papel do Brasil na indústria do futuro','Mauro como voz protagonista no debate sobre reindustrialização, inovação e competitividade nacional.')">O papel do Brasil na indústria do futuro</div>
+      <div class="topic t-ind" onclick="show(this,'Indústria','Voz estratégica','Indústria e propósito: é possível ter os dois?','Território que questiona a dicotomia entre resultado industrial e propósito. Usando Kando e a cultura Yamaha como referência para defender que as melhores indústrias são movidas por ambos.')">Indústria e propósito: é possível ter os dois?</div>
+    </div>
+
+    <div class="lcell"><span class="lname">Liderança</span></div>
+    <div class="tcell">
+      <div class="topic t-lid" onclick="show(this,'Liderança','Racionalidade com humanidade','Decidir com lógica sem ignorar pessoas','A capacidade de tomar decisões analiticamente rigorosas sem desconsiderar o impacto humano. Essa tensão produtiva como diferencial de quem lidera com maturidade.')">Decidir com lógica sem ignorar pessoas</div>
+      <div class="topic t-lid" onclick="show(this,'Liderança','Racionalidade com humanidade','Escuta generativa como liderança','Scharmer e a Teoria U: uma liderança que ouve antes de agir. O nível mais profundo da escuta como vantagem estratégica em um mundo de ruído e pressa.')">Escuta generativa como liderança</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-lid" onclick="show(this,'Liderança','Credibilidade intelectual','Consistência intelectual como liderança','O que define um líder intelectualmente credível não é o cargo, mas a consistência do pensamento ao longo do tempo.')">Consistência intelectual como liderança</div>
+      <div class="topic t-lid" onclick="show(this,'Liderança','Credibilidade intelectual','Shoshin: mente de principiante','O conceito zen da mente de principiante como antídoto ao arrogance of expertise. Fundamento de liderança que continua aprendendo mesmo no topo.')">Shoshin: mente de principiante</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-lid" onclick="show(this,'Liderança','Confiança relacional','Construção de confiança em times','Como líderes constroem ambientes onde as pessoas se sentem seguras para errar, falar e crescer. Confiança como prática diária.')">Construção de confiança em times</div>
+      <div class="topic t-lid" onclick="show(this,'Liderança','Confiança relacional','Vulnerabilidade estratégica na liderança','Brené Brown como referência. O líder que admite incerteza não perde autoridade: a aprofunda.')">Vulnerabilidade estratégica na liderança</div>
+    </div>
+    <div class="tcell">
+      <div class="topic t-lid" onclick="show(this,'Liderança','Voz estratégica','Protagonismo executivo com clareza','Mauro como voz que não apenas analisa: posiciona. Conteúdo que assume perspectiva clara sobre temas de liderança e gestão.')">Protagonismo executivo com clareza</div>
+      <div class="topic t-lid" onclick="show(this,'Liderança','Voz estratégica','Kaizen na liderança pessoal','A filosofia japonesa da melhoria contínua aplicada ao desenvolvimento da marca pessoal. Disciplina e consistência como estratégia de posicionamento.')">Kaizen na liderança pessoal</div>
+    </div>
+  </div>
+  </div>
+
+  <div class="panel" id="detail-panel">
+    <div class="panel-meta">
+      <span class="badge" id="panel-lente"></span>
+      <span style="font-size:11px;color:#aaa;">+</span>
+      <span class="panel-pilar" id="panel-pilar"></span>
+    </div>
+    <p class="panel-title" id="panel-title"></p>
+    <p class="panel-desc" id="panel-desc"></p>
+  </div>
+  <p class="footer">2na Think Tank · Mauro Iwamura · Arquitetura de conteúdo 2026</p>
+</div>
+
+<!-- PÁGINA 2: ARCO NARRATIVO -->
+<div class="page" id="page-arco">
+  <p class="section-title">Arco narrativo</p>
+  <p class="section-sub">Como a sequência de posts constrói pensamento ao longo do tempo e por que cada escolha é inteligente.</p>
+
+  <div class="arco-intro">
+    <p>Os posts não são publicações isoladas. Eles seguem uma <strong>linha de construção de pensamento</strong> que evolui ao longo do semestre.</p>
+    <p>Os pilares sustentam <strong>quem Mauro é</strong>. As lentes organizam <strong>sobre o que ele fala</strong>. O arco narrativo define <strong>como esse conteúdo amadurece</strong> do conceito ao posicionamento.</p>
+    <p>Sem esse arco, o conteúdo seria competente mas disperso. Com ele, cada post reforça o anterior e prepara o próximo.</p>
+    <p>O <strong>Pilar 4, Voz Estratégica</strong>, não aparece marcado em nenhum post individualmente porque ele permeia todos. Cada tema escolhido, cada referência, cada ângulo de abordagem existe para construir, gradualmente, a voz estratégica de Mauro. O arco inteiro é o caminho até ela.</p>
+  </div>
+
+  <div class="fases-row">
+    <div class="fase-cell f1"><div class="fase-num">Fase 1</div><div class="fase-name">Ampliação</div><div class="fase-desc">Abre o campo temático. Mostra leitura de mundo. Posiciona Mauro como alguém que pensa com profundidade.</div></div>
+    <div class="fase-cell f2"><div class="fase-num">Fase 2</div><div class="fase-name">Aprofundamento</div><div class="fase-desc">Conecta os conceitos à realidade executiva. Traduz repertório em relevância de negócio.</div></div>
+    <div class="fase-cell f3"><div class="fase-num">Fase 3</div><div class="fase-name">Posicionamento</div><div class="fase-desc">Assume voz clara. Defende ideias. Consolida Mauro como referência intelectual no setor.</div></div>
+  </div>
+
+  <p style="font-size:10px;font-weight:500;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;">Posts maio a julho 2026</p>
+
+  <div class="tl-months">
+    <div class="month-block">
+      <div class="month-header">Maio 2026</div>
+      <div class="month-posts">
+        <div class="post-item pi-amp">
+          <div class="post-date">12/05 · Terça · 8h</div>
+          <div class="post-tema">Kando</div>
+          <div class="post-tags"><span class="tag tag-lente-kan">Kando</span><span class="tag tag-pilar">Credibilidade intelectual</span><span class="tag tag-fase-amp">Ampliação</span></div>
+          <div class="post-why">Abre o semestre com o conceito que está no DNA da Yamaha. Apresenta Kando como filosofia, não como produto, e já diferencia Mauro como um presidente que pensa além do operacional.</div>
+        </div>
+        <div class="post-item pi-amp">
+          <div class="post-date">27/05 · Quarta · 8h</div>
+          <div class="post-tema">Maio Amarelo</div>
+          <div class="post-tags"><span class="tag tag-lente-mob">Mobilidade</span><span class="tag tag-pilar">Racionalidade com humanidade</span><span class="tag tag-fase-amp">Ampliação</span></div>
+          <div class="post-why">Posiciona Mauro como líder consciente do impacto humano da mobilidade. Para o presidente da Yamaha, segurança no trânsito não é pauta de comunicação: é responsabilidade de marca.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="month-block">
+      <div class="month-header">Junho 2026</div>
+      <div class="month-posts">
+        <div class="post-item pi-apr">
+          <div class="post-date">09/06 · Terça · 8h</div>
+          <div class="post-tema">Wabi-sabi</div>
+          <div class="post-tags"><span class="tag tag-lente-kan">Kando</span><span class="tag tag-pilar">Confiança relacional</span><span class="tag tag-fase-apr">Aprofundamento</span></div>
+          <div class="post-why">Após abrir com Kando como conceito, aprofunda com Wabi-sabi: a beleza do imperfeito, do incompleto e do impermanente. Conecta filosofia japonesa com vulnerabilidade executiva real, território onde pouquíssimos presidentes se posicionam.</div>
+        </div>
+        <div class="post-item pi-apr">
+          <div class="post-date">22/06 · Segunda · 8h</div>
+          <div class="post-tema">Indústria e Propósito</div>
+          <div class="post-tags"><span class="tag tag-lente-ind">Indústria</span><span class="tag tag-pilar">Voz estratégica</span><span class="tag tag-fase-apr">Aprofundamento</span></div>
+          <div class="post-why">Traduz tudo que veio antes para o campo do negócio. Kando vira argumento estratégico: indústrias com propósito não são mais altruístas, são mais competitivas. Mauro fala como quem vive esse dilema, não como quem teoriza sobre ele.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="month-block">
+      <div class="month-header">Julho 2026</div>
+      <div class="month-posts">
+        <div class="post-item pi-apr">
+          <div class="post-date">08/07 · Quarta · 8h</div>
+          <div class="post-tema">Mobilidade e Inclusão</div>
+          <div class="post-tags"><span class="tag tag-lente-mob">Mobilidade</span><span class="tag tag-pilar">Racionalidade com humanidade</span><span class="tag tag-fase-apr">Aprofundamento</span></div>
+          <div class="post-why">A moto da Yamaha não é só um veículo: é o instrumento com que milhões de brasileiros colocam o pão na mesa todos os dias. Entregadores, mototaxistas, trabalhadores rurais. Mobilidade aqui não é conceito filosófico, é sobrevivência e dignidade. Mauro como presidente que enxerga essa realidade e a assume com responsabilidade.</div>
+        </div>
+        <div class="post-item pi-pos">
+          <div class="post-date">21/07 · Terça · 8h</div>
+          <div class="post-tema">Yamaha e Brasil: uma parceria de sucesso</div>
+          <div class="post-tags"><span class="tag tag-lente-ind">Indústria</span><span class="tag tag-pilar">Voz estratégica</span><span class="tag tag-fase-pos">Posicionamento</span></div>
+          <div class="post-why">Fecha o arco com o post de maior protagonismo: a história de como uma empresa japonesa e o Brasil construíram juntos algo único. O Polo Industrial de Manaus como símbolo dessa parceria, onde tecnologia japonesa e capacidade brasileira se encontraram para criar uma das maiores operações industriais da América Latina. Mauro como voz que conta essa história com orgulho, profundidade e visão de futuro.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="argumento">
+    <div class="arg-title">Por que este arco é inteligente</div>
+    <div class="arg-items">
+      <div class="arg-item"><div class="arg-item-num">01</div><div class="arg-item-title">Coerência sem monotonia</div><div class="arg-item-text">Todos os posts partem dos mesmos pilares, mas nenhum repete o outro. A matriz garante variedade. O arco garante progressão.</div></div>
+      <div class="arg-item"><div class="arg-item-num">02</div><div class="arg-item-title">Do Japão ao Brasil</div><div class="arg-item-text">O arco começa com a alma japonesa da Yamaha e termina com a força brasileira que a transformou. Essa jornada é única e autêntica para o Mauro.</div></div>
+      <div class="arg-item"><div class="arg-item-num">03</div><div class="arg-item-title">Do conceito ao protagonismo</div><div class="arg-item-text">O semestre começa abrindo ideias e termina com Mauro assumindo uma voz clara de liderança. Essa é a jornada de construção de autoridade.</div></div>
+    </div>
+  </div>
+
+  <div class="frase">
+    <p>Conteúdo não é sobre frequência.<br>É sobre progressão de pensamento.</p>
+    <span>Cada post constrói o próximo. Cada mês avança o arco.</span>
+  </div>
+
+  <p class="footer">2na Think Tank · Mauro Iwamura · Arco narrativo 2026</p>
+</div>
+
+<script>
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('show');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+const lenteCls={Mobilidade:'b-mob',Kando:'b-kan','Indústria':'b-ind','Liderança':'b-lid'};
+let activeT=null;
+function show(el,lente,pilar,title,desc){
+  if(activeT)activeT.classList.remove('active');
+  if(activeT===el){activeT=null;document.getElementById('detail-panel').classList.remove('show');return;}
+  el.classList.add('active');activeT=el;
+  const lb=document.getElementById('panel-lente');
+  lb.textContent=lente;lb.className='badge '+(lenteCls[lente]||'');
+  document.getElementById('panel-pilar').textContent=pilar;
+  document.getElementById('panel-title').textContent=title;
+  document.getElementById('panel-desc').textContent=desc;
+  document.getElementById('detail-panel').classList.add('show');
+  document.getElementById('detail-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>
